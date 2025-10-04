@@ -2844,8 +2844,8 @@ elif st.session_state.selected_tab == "⚖️ Comparative Patient Insights":
             st.markdown('<h4 class="subsection-title">🖼️ Visual Comparison</h4>', unsafe_allow_html=True)
 
             # Retrieve images for both patients from the image dataframe
-            primary_images = get_patient_images(primary_patient.get(filename_col, ''), df_images)
-            comparison_images = get_patient_images(comparison_patient.get(filename_col, ''), df_images)
+            primary_images = get_patient_images_optimized(primary_patient.get(filename_col, ''), df_images)
+            comparison_images = get_patient_images_optimized(comparison_patient.get(filename_col, ''), df_images)
 
             # Check if both patients have images available
             if not primary_images.empty and not comparison_images.empty:
