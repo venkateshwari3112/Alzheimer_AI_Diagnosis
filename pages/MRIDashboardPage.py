@@ -315,14 +315,55 @@ def load_mri_data_optimized(force_refresh=False):
 # ------------------------------
 
 @st.cache_data(ttl=300, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def display_image_from_db_cached(image_path, caption=""):
-    """Cache image existence checks"""
+    """Cache image existence checks - GitHub compatible with patient subdirectories"""
     try:
         if isinstance(image_path, str) and ('/' in image_path or '\\' in image_path):
-            if os.path.exists(image_path):
-                return image_path, True, os.path.getmtime(image_path)
+            # Convert to Path object for better handling
+            path = Path(image_path)
+            
+            # Strategy 1: If absolute path exists, use it
+            if path.is_absolute() and path.exists():
+                return str(path), True, path.stat().st_mtime
+            
+            # Strategy 2: Try the path as stored in DB (might be relative or absolute)
+            if path.exists():
+                return str(path), True, path.stat().st_mtime
+            
+            # Strategy 3: Extract filename and patient_id from path
+            filename = path.name
+            # Look for patient_id in path (e.g., stored_images/patient_1/image.png)
+            path_parts = path.parts
+            patient_id = None
+            for part in path_parts:
+                if 'patient' in part.lower():
+                    patient_id = part
+                    break
+            
+            # Strategy 4: Try in stored_images/patient_X/ structure
+            if patient_id:
+                patient_img_path = DB_DIR / 'stored_images' / patient_id / filename
+                if patient_img_path.exists():
+                    return str(patient_img_path), True, patient_img_path.stat().st_mtime
+            
+            # Strategy 5: Try direct in stored_images (flat structure)
+            stored_img_path = DB_DIR / 'stored_images' / filename
+            if stored_img_path.exists():
+                return str(stored_img_path), True, stored_img_path.stat().st_mtime
+            
+            # Strategy 6: Search all patient subdirectories for the file
+            stored_images_dir = DB_DIR / 'stored_images'
+            if stored_images_dir.exists():
+                for patient_dir in stored_images_dir.iterdir():
+                    if patient_dir.is_dir():
+                        potential_path = patient_dir / filename
+                        if potential_path.exists():
+                            return str(potential_path), True, potential_path.stat().st_mtime
+        
         return None, False, 0
-    except:
+    except Exception as e:
+        # Only show warning in debug mode
         return None, False, 0
 
 def display_image_from_db(image_data, caption="Image"):
