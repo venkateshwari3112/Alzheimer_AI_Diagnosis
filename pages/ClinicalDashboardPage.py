@@ -745,53 +745,23 @@ with tab1:
     # ---------------------------------------------------------
     # 5️⃣ Top Feature Importance (SHAP Values)
     # ---------------------------------------------------------
-    if not df_global_importance.empty:
-        st.markdown('<h3 class="main-title">🏆 Top 10 Most Important Features</h3>', unsafe_allow_html=True)
-        st.markdown("""
-        <p style="color: #666;">
-        These features have the greatest impact on model predictions, ranked by mean absolute SHAP values.
-        </p>
-        """, unsafe_allow_html=True)
+    if not df_global_importance.empty: 
+      st.markdown('<h3 class="main-title">🏆 Top 10 Most Important Features</h3>', unsafe_allow_html=True) 
+      st.markdown(""" <p style="color: #666;"> These features have the greatest impact on model predictions, ranked by mean absolute SHAP values. </p> """, unsafe_allow_html=True) 
+      top_features = df_global_importance.head(10) 
+      fig_importance = go.Figure(go.Bar( x=top_features['Mean_Absolute_SHAP'], 
+                                        y=top_features['Feature'], orientation='h', 
+                                        marker=dict( color=top_features['Mean_Absolute_SHAP'], 
+                                        colorscale='Turbo', showscale=True ), text=top_features['Mean_Absolute_SHAP'].apply(lambda x: f"<b>{x:.3f}</b>"), textposition='outside' )) 
+      fig_importance.update_layout( title={'text': "✨ <b>Feature Importance Analysis</b>", 'x': 0.5}, 
+                                   yaxis={'categoryorder': 'total ascending'}, 
+                                   height=650, plot_bgcolor='#F5F5F5' ) 
+      st.plotly_chart(fig_importance, use_container_width=True) 
+    else: 
+      st.warning("⚠️ No feature importance data available. Please ensure SHAP values have been calculated.")
 
-        top_features = df_global_importance.head(10)
-        fig_importance = go.Figure(go.Bar(
-            x=top_features['Mean_Absolute_SHAP'],
-            y=top_features['Feature'],
-            orientation='h',
-            marker=dict(
-                color=top_features['Mean_Absolute_SHAP'],
-                colorscale='Turbo',
-                showscale=True
-            ),
-            text=top_features['Mean_Absolute_SHAP'].apply(lambda x: f"<b>{x:.3f}</b>"),
-            textposition='outside'
-        ))
-
-        # ✅ Updated layout: larger and bright axis fonts
-        fig_importance.update_layout(
-            title={'text': "✨ <b>Feature Importance Analysis</b>", 'x': 0.5},
-            yaxis={
-                'categoryorder': 'total ascending',
-                'title': '<b>Feature</b>',
-                'titlefont': dict(size=18, color='white'),
-                'tickfont': dict(size=16, color='white')
-            },
-            xaxis={
-                'title': '<b>Mean Absolute SHAP Value</b>',
-                'titlefont': dict(size=18, color='white'),
-                'tickfont': dict(size=16, color='white')
-            },
-            height=650,
-            plot_bgcolor='#1E1E1E',  # dark background to make white font pop
-            paper_bgcolor='#1E1E1E',  # keep consistent background
-            font=dict(color='white'),  # default text color
-        )
-
-        st.plotly_chart(fig_importance, use_container_width=True)
-
-    else:
-        st.warning("⚠️ No feature importance data available. Please ensure SHAP values have been calculated.")
-
+  
+    
 # ============================
 # 📊 Clinical Feature Insights (Tab 2)
 # ============================
